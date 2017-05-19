@@ -1,0 +1,29 @@
+{
+    "name": "rossoneri/yii2-workman",
+    "type": "yii2-extension",
+    "description": "Add Job Manager and Workers for Yii2",
+    "keywords": ["yii2", "job", "queue", "beanstalkd"],
+    "license": "BSD-3-Clause",
+    "require": {
+        "yiisoft/yii2": "~2.0.0",
+        "pda/pheanstalk": "^3.1"
+    },
+    "support": {
+        "issues": "https://github.com/yiisoft/yii2/issues?labels=ext%3Aimagine",
+        "forum": "http://www.yiiframework.com/forum/",
+        "wiki": "http://www.yiiframework.com/wiki/",
+        "irc": "irc://irc.freenode.net/yii",
+        "source": "https://github.com/yiisoft/yii2"
+    },
+    "autoload": {
+        "psr-4": {
+            "rossoneri\\workman\\": ""
+        }
+    },
+    "authors": [
+        {
+            "name": "Qi Huajun",
+            "email": "qihjun@gmail.com"
+        }
+    ]
+}
