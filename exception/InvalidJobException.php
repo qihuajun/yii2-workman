@@ -6,10 +6,12 @@
  * Time: 下午3:37
  */
 
-namespace yii\workman\exception;
+namespace rossoneri\workman\exception;
 
 
-class InvalidJobException
+use yii\base\Exception;
+
+class InvalidJobException extends Exception
 {
 
 }

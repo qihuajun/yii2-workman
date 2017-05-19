@@ -1,6 +1,6 @@
 <?php
 
-namespace yii\workman;
+namespace rossoneri\workman\job;
 
 /**
  * Created by PhpStorm.
@@ -18,15 +18,21 @@ interface JobInterface
 
     public function getId();
 
-    public function setId();
+    public function setId($id);
 
     public function getName();
 
-    public function setName();
+    public function setName($name);
 
     public function getStatus();
 
-    public function setStatus();
+    public function setStatus($status);
+
+    public function getData();
 
     public function run();
+
+    public function canBeReleased();
+
+    public function canBeBuried();
 }

@@ -6,7 +6,7 @@
  * Time: 上午11:16
  */
 
-namespace yii\workman;
+namespace rossoneri\workman\exception;
 
 
 use yii\base\Exception;
