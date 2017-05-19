@@ -2,22 +2,26 @@
 /**
  * Created by PhpStorm.
  * User: qihuajun
- * Date: 2017/5/18
- * Time: 上午11:25
+ * Date: 2017/5/19
+ * Time: 下午5:30
  */
 
 namespace rossoneri\workman\job;
 
 
-use yii\base\Component;
+use yii\base\Model;
 
-abstract class Job extends Component implements JobInterface
+abstract class BaseJob extends Model implements JobInterface
 {
     public $id;
 
     public $name;
 
     public $status = self::STATUS_NEW;
+
+    public $canBeReleased = false;
+
+    public $canBeBuried = false;
 
     public function init()
     {
@@ -85,5 +89,23 @@ abstract class Job extends Component implements JobInterface
     public function run()
     {
         // TODO: Implement run() method.
+    }
+
+    public function getData()
+    {
+        $data = $this->attributes;
+        $data['class'] = self::className();
+
+        return $data;
+    }
+
+    public function canBeReleased()
+    {
+        return $this->canBeReleased;
+    }
+
+    public function canBeBuried()
+    {
+        return $this->canBeBuried;
     }
 }
