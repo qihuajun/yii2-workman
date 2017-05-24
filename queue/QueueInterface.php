@@ -1,5 +1,6 @@
 <?php
 namespace rossoneri\workman\queue;
+use Pheanstalk\Job;
 use rossoneri\workman\job\JobInterface;
 
 /**
@@ -33,5 +34,7 @@ interface QueueInterface
     public function watchOnly($tube);
 
     public function kick($bound);
+
+    public function getAttempted(JobInterface $job);
 
 }

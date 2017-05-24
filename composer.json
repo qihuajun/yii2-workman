@@ -6,6 +6,7 @@
     "license": "BSD-3-Clause",
     "require": {
         "yiisoft/yii2": "~2.0.0",
+        "yiisoft/yii2-redis": "*",
         "pda/pheanstalk": "^3.1"
     },
     "support": {

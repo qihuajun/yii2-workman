@@ -11,13 +11,18 @@ namespace rossoneri\workman\queue;
 
 use Pheanstalk\Job;
 use Pheanstalk\Pheanstalk;
+use Pheanstalk\PheanstalkInterface;
 use yii\base\Component;
 use rossoneri\workman\exception\InvalidJobException;
 use rossoneri\workman\job\JobInterface;
+use yii\helpers\Json;
 
 class BeanstalkdQueue extends Component implements QueueInterface
 {
-    public $server;
+    public $host;
+    public $port = PheanstalkInterface::DEFAULT_PORT;
+    public $connectTimeout = 30;
+    public $connectPersistent = true;
 
     /**
      * @var Pheanstalk
@@ -28,27 +33,34 @@ class BeanstalkdQueue extends Component implements QueueInterface
     {
         parent::init();
 
-        $this->pheanstalk = new Pheanstalk($this->server);
+        $this->pheanstalk = new Pheanstalk($this->host,$this->port,$this->connectTimeout,$this->connectPersistent);
     }
 
     private function transformToQueueJob(JobInterface $job){
-        return new Job($job->getId(),$job->getData());
+        return new Job($job->getId(),Json::encode($job->getData()));
     }
 
     private function transformFromQueueJob(Job $job){
         $data = $job->getData();
+        $data = Json::decode($data);
 
         $object = \Yii::createObject($data);
 
         if(! $object instanceof JobInterface){
             throw new InvalidJobException();
         }
+
+        $object->setId($job->getId());
+
+        return $object;
     }
 
 
     public function putInTube(JobInterface $job, $tube = 'default', $priority = 100, $delay = 0, $ttr=10)
     {
-        return $this->pheanstalk->putInTube($tube,$job->getData(),$priority,$delay,$ttr);
+        $data = $job->getData();
+        $data = Json::encode($data);
+        return $this->pheanstalk->putInTube($tube,$data,$priority,$delay,$ttr);
     }
 
     public function reserveFromTube($tube='default',$timeout=null)
@@ -111,5 +123,12 @@ class BeanstalkdQueue extends Component implements QueueInterface
     public function watchOnly($tube)
     {
         $this->pheanstalk->watchOnly($tube);
+    }
+
+    public function getAttempted(JobInterface $job)
+    {
+        $queueJob = $this->transformToQueueJob($job);
+        $stats = $this->pheanstalk->statsJob($queueJob);
+        return (int) $stats->reserves;
     }
 }

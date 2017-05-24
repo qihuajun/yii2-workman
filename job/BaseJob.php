@@ -19,17 +19,13 @@ abstract class BaseJob extends Model implements JobInterface
 
     public $status = self::STATUS_NEW;
 
-    public $canBeReleased = false;
+    public $maxTries = 1;
 
     public $canBeBuried = false;
 
     public function init()
     {
         parent::init();
-
-        if(!$this->id){
-            $this->id = uniqid();
-        }
 
         if(!$this->name){
             $this->name = self::className();
@@ -99,13 +95,18 @@ abstract class BaseJob extends Model implements JobInterface
         return $data;
     }
 
-    public function canBeReleased()
+    public function getMaxTries()
     {
-        return $this->canBeReleased;
+        return $this->maxTries;
     }
 
     public function canBeBuried()
     {
         return $this->canBeBuried;
+    }
+
+    public function failed()
+    {
+
     }
 }

@@ -32,7 +32,9 @@ interface JobInterface
 
     public function run();
 
-    public function canBeReleased();
+    public function getMaxTries();
 
     public function canBeBuried();
+
+    public function failed();
 }

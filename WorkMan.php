@@ -9,6 +9,7 @@
 namespace rossoneri\workman;
 
 
+use rossoneri\workman\job\JobInterface;
 use yii\base\Component;
 use rossoneri\workman\queue\QueueInterface;
 
@@ -28,8 +29,9 @@ class WorkMan extends Component
         $this->queue = \Yii::$app->get($this->queueComponentId);
     }
 
-    public function dispatch($job,$tube,$priority=100,$delay=0,$ttr=10){
-        $this->queue->putInTube($job,$tube,$priority,$delay,$ttr);
+    public function dispatch(JobInterface $job,$tube,$priority=100,$delay=0,$ttr=10){
+        $id = $this->queue->putInTube($job,$tube,$priority,$delay,$ttr);
+        $job->setId($id);
     }
 
 
