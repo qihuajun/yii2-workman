@@ -25,8 +25,6 @@ class Worker extends Component
 
     public $interval;
 
-    public $watchOnly;
-
     public $timeLimit = 3600;
 
     public $memoryLimit = 128;
@@ -39,6 +37,16 @@ class Worker extends Component
 
     public $id;
 
+    private $beTerminated = false;
+
+    private $shouldQuit = false;
+
+    /**
+     * @var WorkerRegistry
+     */
+    public $registry;
+
+    public $registryComponentId;
 
     public function init()
     {
@@ -52,15 +60,32 @@ class Worker extends Component
 
         $this->startTime = time();
 
-        $this->id = gethostname().getmypid();
+        $this->id =  gethostname().'_'.getmypid();
+
+        $this->registry = \Yii::$app->get($this->registryComponentId);
+
+        $this->registry->register($this);
+
+        $this->setSignalHandler();
+    }
+
+    public function stat(){
+        $data = [
+            'startTime' => $this->startTime,
+            'memoryUsage' => $this->getMemoryUsage(),
+            'jobs' => $this->jobs,
+            'watches' => $this->watches
+        ];
+
+        return $data;
     }
 
     private function shouldExit(){
-        if(time() - $this->startTime >= $this->timeLimit){
+        if($this->getRunTime() >= $this->timeLimit){
             return true;
         }
 
-        if(memory_get_usage(true) > $this->memoryLimit * 1024 * 1024){
+        if($this->getMemoryUsage() > $this->memoryLimit){
             return true;
         }
 
@@ -68,15 +93,21 @@ class Worker extends Component
             return true;
         }
 
-        return false;
+        return $this->beTerminated || $this->shouldQuit || false;
+    }
+
+    public function getRunTime(){
+        return time() - $this->startTime;
+    }
+
+    public function getMemoryUsage(){
+        return memory_get_usage(true) / 1024 /1024 ;
     }
 
 
     public function work(){
         echo "Working...",PHP_EOL;
-        if($this->watchOnly){
-            $this->queue->watchOnly($this->watchOnly);
-        }else{
+        if($this->watches){
             foreach ($this->watches as $watch) {
                 $this->queue->watch($watch);
             }
@@ -84,8 +115,9 @@ class Worker extends Component
 
         while (true){
             echo 'Reserving...',PHP_EOL;
-            $job = $this->queue->reserve();
+            $job = $this->queue->reserve(0);
             if($job){
+                $this->jobs++;
                 $this->executeJob($job);
             }else{
                 if($this->interval){
@@ -93,10 +125,16 @@ class Worker extends Component
                 }
             }
 
+            $this->registry->updateStat($this);
+
+            pcntl_signal_dispatch();
+
             if($this->shouldExit()){
                 break;
             }
         }
+
+        $this->registry->unregister($this);
 
         return ;
     }
@@ -118,5 +156,34 @@ class Worker extends Component
                 $this->queue->delete($job);
             }
         }
+    }
+
+
+    /**
+     * Enable async signals for the process.
+     *
+     * @return void
+     */
+    protected function setSignalHandler()
+    {
+        pcntl_signal(SIGTERM, function () {
+            \Yii::info("Receive SIGTERM Signal, Worker Exit",'yii.workman.worker');
+            $this->beTerminated = true;
+        });
+
+        pcntl_signal(SIGHUP, function () {
+            \Yii::info("Receive SIGHUP Signal, Worker Exit",'yii.workman.worker');
+            $this->shouldQuit = true;
+        });
+
+        pcntl_signal(SIGUSR2, function () {
+            \Yii::info("Receive Quit Signal, Worker Quit",'yii.workman.worker');
+            $this->shouldQuit = true;
+        });
+
+        pcntl_signal(SIGINT, function () {
+            \Yii::info("Receive Interept Signal, Worker Quit",'yii.workman.worker');
+            $this->shouldQuit = true;
+        });
     }
 }

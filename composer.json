@@ -5,6 +5,7 @@
     "keywords": ["yii2", "job", "queue", "beanstalkd"],
     "license": "BSD-3-Clause",
     "require": {
+        "ext-pcntl":"*",
         "yiisoft/yii2": "~2.0.0",
         "yiisoft/yii2-redis": "*",
         "pda/pheanstalk": "^3.1"

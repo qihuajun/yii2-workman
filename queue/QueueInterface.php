@@ -11,15 +11,31 @@ use rossoneri\workman\job\JobInterface;
  */
 interface QueueInterface
 {
+    const DEFAULT_PRIORITY = 100;
+
+    const DEFAULT_DELAY = 0;
+
+    const DEFAULT_TUBE = 'default';
+
+    const DEFAULT_TTR = 60;
+
     public function useTube($tube);
 
-    public function put(JobInterface $job,$priority = 100, $delay = 0, $ttr=10);
+    public function put(JobInterface $job,$priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr=self::DEFAULT_TTR);
 
-    public function putInTube(JobInterface $job,$tube='default',$priority = 100, $delay = 0, $ttr=10);
+    public function putRaw($data, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr=self::DEFAULT_TTR);
+
+    public function putInTube(JobInterface $job, $tube=self::DEFAULT_TUBE, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr=self::DEFAULT_TTR);
+
+    public function putRawInTube($data, $tube=self::DEFAULT_TUBE, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr=self::DEFAULT_TTR);
 
     public function reserve($timeout=null);
 
-    public function reserveFromTube($tube='default',$timeout=null);
+    public function reserveRaw($timeout=null);
+
+    public function reserveFromTube($tube=self::DEFAULT_TUBE,$timeout=null);
+
+    public function reserveRawFromTube($tube=self::DEFAULT_TUBE,$timeout=null);
 
     public function delete(JobInterface $job);
 

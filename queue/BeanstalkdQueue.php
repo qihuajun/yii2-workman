@@ -56,14 +56,14 @@ class BeanstalkdQueue extends Component implements QueueInterface
     }
 
 
-    public function putInTube(JobInterface $job, $tube = 'default', $priority = 100, $delay = 0, $ttr=10)
+    public function putInTube(JobInterface $job, $tube=self::DEFAULT_TUBE, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr=self::DEFAULT_TTR)
     {
         $data = $job->getData();
         $data = Json::encode($data);
         return $this->pheanstalk->putInTube($tube,$data,$priority,$delay,$ttr);
     }
 
-    public function reserveFromTube($tube='default',$timeout=null)
+    public function reserveFromTube($tube=self::DEFAULT_TUBE,$timeout=null)
     {
         $job = $this->pheanstalk->reserveFromTube($tube,$timeout);
         return $this->transformFromQueueJob($job);
@@ -76,13 +76,13 @@ class BeanstalkdQueue extends Component implements QueueInterface
         $this->pheanstalk->delete($queueJob);
     }
 
-    public function release(JobInterface $job, $priority = 100, $delay = 0)
+    public function release(JobInterface $job, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY)
     {
         $queueJob = $this->transformToQueueJob($job);
         $this->pheanstalk->release($queueJob,$delay);
     }
 
-    public function bury(JobInterface $job, $priority = 100)
+    public function bury(JobInterface $job, $priority = self::DEFAULT_PRIORITY)
     {
         $queueJob = $this->transformToQueueJob($job);
         $this->pheanstalk->bury($queueJob,$priority);
@@ -109,15 +109,18 @@ class BeanstalkdQueue extends Component implements QueueInterface
         $this->pheanstalk->useTube($tube);
     }
 
-    public function put(JobInterface $job, $priority = 100, $delay = 0, $ttr = 10)
+    public function put(JobInterface $job, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr=self::DEFAULT_TTR)
     {
-        $this->pheanstalk->put($job->getData(),$priority,$delay,$ttr);
+        return $this->pheanstalk->put($job->getData(),$priority,$delay,$ttr);
     }
 
     public function reserve($timeout = null)
     {
         $job = $this->pheanstalk->reserve($timeout);
-        return $this->transformFromQueueJob($job);
+        if($job){
+            return $this->transformFromQueueJob($job);
+        }
+        return null;
     }
 
     public function watchOnly($tube)
@@ -130,5 +133,27 @@ class BeanstalkdQueue extends Component implements QueueInterface
         $queueJob = $this->transformToQueueJob($job);
         $stats = $this->pheanstalk->statsJob($queueJob);
         return (int) $stats->reserves;
+    }
+
+    public function putRaw($data, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr = self::DEFAULT_TTR)
+    {
+        return $this->pheanstalk->put($data,$priority,$delay,$ttr);
+    }
+
+    public function putRawInTube($data, $tube = self::DEFAULT_TUBE, $priority = self::DEFAULT_PRIORITY, $delay = self::DEFAULT_DELAY, $ttr = self::DEFAULT_TTR)
+    {
+        return $this->pheanstalk->putInTube($tube,$data,$priority,$delay,$ttr);
+    }
+
+    public function reserveRaw($timeout = null)
+    {
+        $job = $this->pheanstalk->reserve($timeout);
+        return $job;
+    }
+
+    public function reserveRawFromTube($tube = self::DEFAULT_TUBE, $timeout = null)
+    {
+        $job = $this->pheanstalk->reserveFromTube($tube,$timeout);
+        return $job;
     }
 }
