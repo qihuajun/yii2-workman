@@ -34,7 +34,7 @@ class WorkerRegistry extends Component
     }
 
     public function register(Worker $worker){
-        $id = $worker->id;
+        $id = $worker->getId();
         $stat = $worker->stat();
 
         $this->redis->hset(self::WORKER_ID_KEY,$id,Json::encode($stat));
@@ -51,14 +51,14 @@ class WorkerRegistry extends Component
     }
 
     public function updateStat(Worker $worker){
-        $id = $worker->id;
+        $id = $worker->getId();
         $stat = $worker->stat();
 
         $this->redis->hset(self::WORKER_ID_KEY,$id,Json::encode($stat));
     }
 
     public function unregister(Worker $worker){
-        $id = $worker->id;
+        $id = $worker->getId();
 
         if($worker->watches){
             foreach ($worker->watches as $watch) {

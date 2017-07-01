@@ -18,11 +18,11 @@ class DefaultController extends \yii\web\Controller
 
     public function actionIndex(){
 
-        $queue = new Pheanstalk('172.24.39.35');
-
-        $stat = $queue->stats();
-
-        return print_r($stat,true);
+//        $queue = new Pheanstalk('172.24.39.35');
+//
+//        $stat = $queue->stats();
+//
+//        return print_r($stat,true);
 
 
         return $this->render('index');

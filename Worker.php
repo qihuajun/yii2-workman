@@ -19,8 +19,6 @@ class Worker extends Component
      */
     public $queue;
 
-    public $queueComponentId;
-
     public $watches;
 
     public $interval;
@@ -29,13 +27,21 @@ class Worker extends Component
 
     public $memoryLimit = 128;
 
-    public $jobLimit = 1000;
+    public $jobLimit = 10;
 
-    public $jobs = 0;
+    private $jobs = 0;
 
-    public $startTime;
+    private $startTime;
 
-    public $id;
+    private $id;
+
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
     private $beTerminated = false;
 
@@ -46,13 +52,9 @@ class Worker extends Component
      */
     public $registry;
 
-    public $registryComponentId;
-
     public function init()
     {
         parent::init();
-
-        $this->queue = \Yii::$app->get($this->queueComponentId);
 
         if(is_string($this->watches)){
             $this->watches = explode(',',$this->watches);
@@ -62,9 +64,9 @@ class Worker extends Component
 
         $this->id =  gethostname().'_'.getmypid();
 
-        $this->registry = \Yii::$app->get($this->registryComponentId);
-
-        $this->registry->register($this);
+        if($this->registry){
+            $this->registry->register($this);
+        }
 
         $this->setSignalHandler();
     }
@@ -125,7 +127,10 @@ class Worker extends Component
                 }
             }
 
-            $this->registry->updateStat($this);
+            if($this->registry){
+                $this->registry->updateStat($this);
+            }
+
 
             pcntl_signal_dispatch();
 
@@ -134,7 +139,10 @@ class Worker extends Component
             }
         }
 
-        $this->registry->unregister($this);
+        if($this->registry){
+            $this->registry->unregister($this);
+        }
+
 
         return ;
     }
