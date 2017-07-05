@@ -11,6 +11,10 @@ namespace rossoneri\workman\exception;
 
 use yii\base\Exception;
 
+/**
+ * Class InvalidJobException
+ * @package rossoneri\workman\exception
+ */
 class InvalidJobException extends Exception
 {
 

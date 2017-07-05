@@ -11,18 +11,40 @@ namespace rossoneri\workman\job;
 
 use yii\base\Model;
 
+/**
+ * Class BaseJob
+ * @package rossoneri\workman\job
+ */
 abstract class BaseJob extends Model implements JobInterface
 {
+    /**
+     * @var
+     */
     public $id;
 
+    /**
+     * @var
+     */
     public $name;
 
+    /**
+     * @var string
+     */
     public $status = self::STATUS_NEW;
 
+    /**
+     * @var int
+     */
     public $maxTries = 1;
 
+    /**
+     * @var bool
+     */
     public $canBeBuried = false;
 
+    /**
+     *
+     */
     public function init()
     {
         parent::init();
@@ -34,7 +56,7 @@ abstract class BaseJob extends Model implements JobInterface
 
 
     /**
-     * @return mixed
+     * @inheritdoc
      */
     public function getId()
     {
@@ -42,7 +64,7 @@ abstract class BaseJob extends Model implements JobInterface
     }
 
     /**
-     * @param mixed $id
+     * @inheritdoc
      */
     public function setId($id)
     {
@@ -50,7 +72,7 @@ abstract class BaseJob extends Model implements JobInterface
     }
 
     /**
-     * @return mixed
+     * @inheritdoc
      */
     public function getName()
     {
@@ -58,7 +80,7 @@ abstract class BaseJob extends Model implements JobInterface
     }
 
     /**
-     * @param mixed $name
+     * @inheritdoc
      */
     public function setName($name)
     {
@@ -66,7 +88,7 @@ abstract class BaseJob extends Model implements JobInterface
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getStatus()
     {
@@ -74,7 +96,7 @@ abstract class BaseJob extends Model implements JobInterface
     }
 
     /**
-     * @param string $status
+     * @inheritdoc
      */
     public function setStatus($status)
     {
@@ -82,11 +104,15 @@ abstract class BaseJob extends Model implements JobInterface
     }
 
 
-    public function run()
-    {
-        // TODO: Implement run() method.
-    }
+    /**
+     * @inheritdoc
+     */
+    public function run(){}
 
+
+    /**
+     * @inheritdoc
+     */
     public function getData()
     {
         $data = $this->attributes;
@@ -95,16 +121,25 @@ abstract class BaseJob extends Model implements JobInterface
         return $data;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getMaxTries()
     {
         return $this->maxTries;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function canBeBuried()
     {
         return $this->canBeBuried;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function failed()
     {
 

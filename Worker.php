@@ -19,20 +19,63 @@ class Worker extends Component
      */
     public $queue;
 
+    /**
+     * the tubes needs to be watched
+     *
+     * @var array
+     */
     public $watches;
 
-    public $interval;
+    /**
+     * the time in seconds a worker sleeps when no job arrived
+     *
+     * @var int
+     */
+    public $interval = 5;
 
+    /**
+     * the time in seconds a worker can run at max
+     *
+     * @var int
+     *
+     */
     public $timeLimit = 3600;
 
+
+    /**
+     * Memory limit in MB of a worker
+     *
+     * @var int
+     */
     public $memoryLimit = 128;
 
-    public $jobLimit = 10;
 
+    /**
+     * Job limit in MB of a worker, if the worker handled $jobLimit jobs, it will exit
+     *
+     * @var int
+     */
+    public $jobLimit = 1000;
+
+    /**
+     * Jobs count that a worker has run
+     *
+     * @var int
+     */
     private $jobs = 0;
 
+    /**
+     * start timestamp of a worker
+     *
+     * @var int
+     */
     private $startTime;
 
+    /**
+     * identifier of a worker
+     *
+     * @var string
+     */
     private $id;
 
     /**
@@ -43,8 +86,19 @@ class Worker extends Component
         return $this->id;
     }
 
+    /**
+     * flag represents whether the worker process is terminated
+     *
+     * @var bool
+     */
     private $beTerminated = false;
 
+
+    /**
+     * flag represents whether the worker shuold quit
+     *
+     * @var bool
+     */
     private $shouldQuit = false;
 
     /**
@@ -52,6 +106,9 @@ class Worker extends Component
      */
     public $registry;
 
+    /**
+     * @inheritdoc
+     */
     public function init()
     {
         parent::init();
@@ -71,6 +128,13 @@ class Worker extends Component
         $this->setSignalHandler();
     }
 
+
+    /**
+     *  return stat of a worker
+     *
+     * @return array
+     *
+     */
     public function stat(){
         $data = [
             'startTime' => $this->startTime,
@@ -82,6 +146,12 @@ class Worker extends Component
         return $data;
     }
 
+
+    /**
+     * check whether the worker should exit
+     *
+     * @return bool
+     */
     private function shouldExit(){
         if($this->getRunTime() >= $this->timeLimit){
             return true;
@@ -98,17 +168,29 @@ class Worker extends Component
         return $this->beTerminated || $this->shouldQuit || false;
     }
 
+    /**
+     * return the worker's uptime
+     *
+     * @return int
+     */
     public function getRunTime(){
         return time() - $this->startTime;
     }
 
+    /**
+     * return the worker's memory usage in MB
+     *
+     * @return float
+     */
     public function getMemoryUsage(){
         return memory_get_usage(true) / 1024 /1024 ;
     }
 
-
+    /**
+     * Receive and Execute jobs
+     */
     public function work(){
-        echo "Working...",PHP_EOL;
+        \Yii::info("Worer {$this->id} Start working ",'yii.workman.worker');
         if($this->watches){
             foreach ($this->watches as $watch) {
                 $this->queue->watch($watch);
@@ -116,7 +198,6 @@ class Worker extends Component
         }
 
         while (true){
-            echo 'Reserving...',PHP_EOL;
             $job = $this->queue->reserve(0);
             if($job){
                 $this->jobs++;
@@ -135,6 +216,7 @@ class Worker extends Component
             pcntl_signal_dispatch();
 
             if($this->shouldExit()){
+                \Yii::info("Worer {$this->id} should exit ",'yii.workman.worker');
                 break;
             }
         }
@@ -147,6 +229,11 @@ class Worker extends Component
         return ;
     }
 
+    /**
+     * Execute the job
+     *
+     * @param JobInterface $job
+     */
     public function executeJob(JobInterface $job){
         try {
             \Yii::info("Receive And Executed Job #{$job->getId()} {$job->getName()}",'yii.workman.worker');

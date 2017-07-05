@@ -11,6 +11,10 @@ namespace rossoneri\workman\exception;
 
 use yii\base\Exception;
 
+/**
+ * Class RunException
+ * @package rossoneri\workman\exception
+ */
 class RunException extends Exception
 {
 

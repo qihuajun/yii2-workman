@@ -8,7 +8,7 @@
 use yii\grid\GridView;
 use yii\helpers\Html;
 
-$this->title = Yii::t('app', 'Workers');
+
 $this->params['breadcrumbs'][] = [
     'url' => '/workman',
     'label'=> 'Workman'
@@ -28,11 +28,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
-            'id',
-            'startTime:datetime',
-            'jobs',
-            'memoryUsage',
-            'watches',
+            'key',
+            'value',
         ],
     ]); ?>
 </div>

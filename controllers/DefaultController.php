@@ -1,10 +1,9 @@
 <?php
 
 namespace rossoneri\workman\controllers;
-use Pheanstalk\Pheanstalk;
 use rossoneri\workman\WorkerRegistry;
+use yii\base\InvalidConfigException;
 use yii\data\ArrayDataProvider;
-use yii\helpers\Json;
 
 /**
  * Created by PhpStorm.
@@ -15,34 +14,112 @@ use yii\helpers\Json;
 class DefaultController extends \yii\web\Controller
 {
 
-
+    /**
+     * Index, display workers info
+     *
+     * @return string
+     * @throws InvalidConfigException
+     */
     public function actionIndex(){
+        /**
+         * @var WorkerRegistry
+         */
+        $registry =\Yii::$app->workman->getRegistry();
 
-//        $queue = new Pheanstalk('172.24.39.35');
-//
-//        $stat = $queue->stats();
-//
-//        return print_r($stat,true);
+        if(!$registry){
+            throw new InvalidConfigException("Registry must be enabled for workman");
+        }
 
+        $workers =  $registry->countWorkers();
+        $tubes =  $registry->countTubes();
+        $workerList = $registry->listWorkers();
 
-        return $this->render('index');
+        $dataProvider = new ArrayDataProvider([
+            'allModels' => $workerList,
+        ]);
+
+        return $this->render('index',['dataProvider'=>$dataProvider,'workers'=>$workers,'tubes'=>$tubes]);
     }
 
-    public function actionWorkers(){
-        $workerList = \Yii::$app->redis->hgetall(WorkerRegistry::WORKER_ID_KEY);
-        $workers = [];
-        $length = count($workerList);
+    /**
+     * Queue Stats
+     *
+     * @return string
+     */
+    public function actionQueue(){
+        $queue = \Yii::$app->workman->getQueue();
+        $info = $queue->stats();
 
-        for ($i=0;$i<$length;$i=$i+2){
-            $workers[$workerList[$i]] = Json::decode($workerList[$i+1]);
-            $workers[$workerList[$i]]['id'] = $workerList[$i];
-            $workers[$workerList[$i]]['watches'] = implode(',',$workers[$workerList[$i]]['watches']);
+        $data = [];
+
+        foreach ($info as $key => $value) {
+            $item = [
+                'key' => $key,
+                'value' => $value
+            ];
+
+            $data[] = $item;
         }
 
         $dataProvider = new ArrayDataProvider([
-            'allModels' => $workers,
+            'allModels' => $data,
         ]);
 
-        return $this->render('workers',['dataProvider'=>$dataProvider]);
+        $this->view->title = "Queue";
+
+        return $this->render('stats',['dataProvider'=>$dataProvider]);
+    }
+
+    /**
+     * Tubes list page
+     *
+     * @return string
+     */
+    public function actionTubes(){
+        $queue = \Yii::$app->workman->getQueue();
+        $tubes = $queue->listTubes();
+        $infos = [];
+        foreach ($tubes as $tube) {
+            $infos[] = $queue->statsTube($tube);
+        }
+
+        $dataProvider = new ArrayDataProvider([
+            'allModels' => $infos,
+        ]);
+
+        $this->view->title = "Tubes";
+
+        return $this->render('tubes',['dataProvider'=>$dataProvider]);
+    }
+
+
+    /**
+     * Tube stats
+     *
+     * @param string $tube
+     * @return string
+     */
+    public function actionTube($tube='default'){
+        $queue = \Yii::$app->workman->getQueue();
+        $info = $queue->statsTube($tube);
+
+        $data = [];
+
+        foreach ($info as $key => $value) {
+            $item = [
+                'key' => $key,
+                'value' => $value
+            ];
+
+            $data[] = $item;
+        }
+
+        $dataProvider = new ArrayDataProvider([
+            'allModels' => $data,
+        ]);
+
+        $this->view->title = "Tube: $tube";
+
+        return $this->render('stats',['dataProvider'=>$dataProvider]);
     }
 }
