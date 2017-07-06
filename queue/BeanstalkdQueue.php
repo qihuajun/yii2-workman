@@ -77,15 +77,22 @@ class BeanstalkdQueue extends Component implements QueueInterface
         $data = $job->getData();
         $data = Json::decode($data);
 
-        $object = \Yii::createObject($data);
+        if(isset($data['class'])){
+            $className = $data['class'];
+            if(class_exists($className)){
+                $object = \Yii::createObject($data);
 
-        if(! $object instanceof JobInterface){
-            throw new InvalidJobException();
+                if($object instanceof JobInterface){
+                    $object->setId($job->getId());
+
+                    return $object;
+                }
+            }
         }
 
-        $object->setId($job->getId());
+        $this->pheanstalk->release($job);
 
-        return $object;
+        return null;
     }
 
 
