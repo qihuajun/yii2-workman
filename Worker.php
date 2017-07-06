@@ -31,7 +31,7 @@ class Worker extends Component
      *
      * @var int
      */
-    public $interval = 5;
+    public $interval = 6;
 
     /**
      * the time in seconds a worker can run at max
@@ -198,15 +198,20 @@ class Worker extends Component
         }
 
         while (true){
-            $job = $this->queue->reserve(0);
-            if($job){
-                $this->jobs++;
-                $this->executeJob($job);
-            }else{
-                if($this->interval){
-                    sleep($this->interval);
+            try{
+                $job = $this->queue->reserve(0);
+                if($job){
+                    $this->jobs++;
+                    $this->executeJob($job);
+                }else{
+                    if($this->interval){
+                        sleep($this->interval);
+                    }
                 }
+            }catch (\Exception $exception){
+                \Yii::error("Reserve Job Failed With Exception: ".$exception->getMessage(),'yii.workman.worker');
             }
+
 
             if($this->registry){
                 $this->registry->updateStat($this);
@@ -226,7 +231,7 @@ class Worker extends Component
         }
 
 
-        return ;
+        return true;
     }
 
     /**
