@@ -3,6 +3,7 @@
 namespace rossoneri\workman;
 
 use rossoneri\workman\job\JobInterface;
+use rossoneri\workman\job\QuitJob;
 use rossoneri\workman\queue\QueueInterface;
 use yii\base\Component;
 
@@ -77,6 +78,8 @@ class Worker extends Component
      * @var string
      */
     private $id;
+
+    const WORKER_COMMAND_TUBE_PREFIX = 'wkct_';
 
     /**
      * @return mixed
@@ -207,6 +210,9 @@ class Worker extends Component
      * Receive and Execute jobs
      */
     public function work(){
+        \Yii::info("Worer {$this->id} Start Watching Command Tube ",'yii.workman.worker');
+        $this->queue->watch(self::WORKER_COMMAND_TUBE_PREFIX.$this->id);
+
         \Yii::info("Worer {$this->id} Start working ",'yii.workman.worker');
         if($this->watches){
             foreach ($this->watches as $watch) {
@@ -257,7 +263,12 @@ class Worker extends Component
         try {
             \Yii::info("Receive And Executed Job #{$job->getId()} {$job->getName()}",'yii.workman.worker');
 
-            $job->run();
+            if($job instanceof QuitJob){
+                \Yii::info("Received A QuitJob, Make Worker Quit",'yii.workman.worker');
+                $this->shouldQuit = true;
+            }else{
+                $job->run();
+            }
             $this->queue->delete($job);
         } catch (\Exception $e) {
             \Yii::error("Job Executed Failed With Exception: ".$e->getMessage(),'yii.workman.worker');

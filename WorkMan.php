@@ -63,7 +63,7 @@ class WorkMan extends Component
      * @param int $delay
      * @param int $ttr
      */
-    public function dispatch(JobInterface $job,$tube,$priority=100,$delay=0,$ttr=10){
+    public function dispatch(JobInterface $job,$tube=null,$priority=100,$delay=0,$ttr=10){
         $id = $this->beanstalkdQueue->putInTube($job,$tube,$priority,$delay,$ttr);
         $job->setId($id);
     }

@@ -27,10 +27,24 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'columns' => [
             'id',
-            'startTime:datetime',
+            [
+                'attribute' => 'startTime',
+                'value' => function($model){
+                    return date('Y-m-d H:i:s',$model['startTime']);
+                }
+            ],
             'jobs',
             'memoryUsage',
             'watches',
+            [
+                'class' => \yii\grid\ActionColumn::className(),
+                'template' => '{stop}',
+                'buttons' => [
+                        'stop' => function ($url, $model, $key) {
+                            return Html::a('Stop',['/workman/default/stop-worker','id'=>$key]);
+                        }
+                ]
+            ]
         ],
     ]); ?>
 </div>

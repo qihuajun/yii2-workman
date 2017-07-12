@@ -1,6 +1,8 @@
 <?php
 
 namespace rossoneri\workman\controllers;
+use rossoneri\workman\job\QuitJob;
+use rossoneri\workman\Worker;
 use rossoneri\workman\WorkerRegistry;
 use yii\base\InvalidConfigException;
 use yii\data\ArrayDataProvider;
@@ -39,6 +41,18 @@ class DefaultController extends \yii\web\Controller
         ]);
 
         return $this->render('index',['dataProvider'=>$dataProvider,'workers'=>$workers,'tubes'=>$tubes]);
+    }
+
+    /**
+     * Stop a worker
+     *
+     * @param $id
+     */
+    public function actionStopWorker($id){
+        $job = new QuitJob();
+        $registry =\Yii::$app->workman->dispatch($job,Worker::WORKER_COMMAND_TUBE_PREFIX.$id);
+        sleep(2);
+        return $this->redirect('index');
     }
 
     /**
