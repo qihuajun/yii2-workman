@@ -106,6 +106,8 @@ class Worker extends Component
      */
     public $registry;
 
+    private $registered = false;
+
     /**
      * @inheritdoc
      */
@@ -123,9 +125,24 @@ class Worker extends Component
 
         if($this->registry){
             $this->registry->register($this);
+            $this->registered = true;
         }
 
         $this->setSignalHandler();
+
+        register_shutdown_function([$this,'unregister']);
+    }
+
+    /**
+     * Unregister before exit
+     */
+    public function unregister(){
+        \Yii::info('Check wheather need to unregister before exit','yii.workman.worker');
+        if($this->registry && $this->registered){
+            \Yii::info('unregister worker from registery','yii.workman.worker');
+            $this->registry->unregister($this);
+            $this->registered = false;
+        }
     }
 
 
@@ -226,10 +243,7 @@ class Worker extends Component
             }
         }
 
-        if($this->registry){
-            $this->registry->unregister($this);
-        }
-
+        $this->unregister();
 
         return true;
     }
